@@ -13,7 +13,7 @@ const router = useRouter()
 const characters = ref<Character[]>([])
 const shuffledCharacters = ref<Character[]>([])
 const correctMatches = ref<{ [key: number]: boolean }>({})
-const episodes = ref<{ [key: number]: string[] }>({})
+const episodes = ref<{ [key: number]: string[] | undefined }>({})
 const showEpisodes = ref<{ [key: number]: boolean }>({})
 const draggedCharacter = ref<Character | null>(null)
 
@@ -28,9 +28,7 @@ const fetchCharacters = async () => {
   const ids = getUniqueRandomCharacters(4, 1, 826)
   const response = await fetch(`https://rickandmortyapi.com/api/character/${ids}`)
   const data = await response.json()
-  console.log(data)
-  const fourCharacters = data.slice(0, 4)
-  characters.value = fourCharacters.map((char: any) => ({
+  characters.value = data.map((char: any) => ({
     id: char.id,
     name: char.name,
     image: char.image,
@@ -41,7 +39,7 @@ const fetchCharacters = async () => {
     (acc, character) => {
       acc[character.id] = character.episodes
         .map((episodeUrl: string) => episodeUrl?.split('/').pop())
-        .filter((episode) => episode !== undefined) as string[]
+        .filter((episode) => episode !== undefined) as string
       return acc
     },
     {} as { [key: number]: string[] },
@@ -126,10 +124,7 @@ onMounted(fetchCharacters)
             >
               Episode {{ episode }}
             </div>
-            <button
-              v-if="episodes[character.id] && episodes[character.id].length > 2"
-              @click="toggleEpisodes(character.id)"
-            >
+            <button v-if="episodes[character.id].length > 2" @click="toggleEpisodes(character.id)">
               {{ showEpisodes[character.id] ? 'Скрыть' : 'Показать еще' }}
             </button>
           </div>
